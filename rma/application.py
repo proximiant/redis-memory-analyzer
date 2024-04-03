@@ -148,6 +148,7 @@ class RmaApplication(object):
                 self.logger.info("Processing scanner")
                 str_res.append(self.do_scanner(self.redis, keys))
             if self.behaviour == 'ram' or is_all:
+                self.logger.info("Processing ram: %s" % keys)
                 str_res.append(self.do_ram(keys))
 
         self.logger.info("Printing results" % len(str_res))
