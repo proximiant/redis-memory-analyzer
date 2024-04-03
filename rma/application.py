@@ -124,12 +124,15 @@ class RmaApplication(object):
         is_all = self.behaviour == 'all'
         with Scanner(redis=self.redis, match=self.match, accepted_types=self.types) as scanner:
             keys = defaultdict(list)
-            for v in scanner.scan(limit=self.limit):
+            records = scanner.scan(limit=self.limit)
+            print("\r\nFound %d keys" % len(records))
+            for v in records:
                 keys[v["type"]].append(v)
 
             if self.isTextFormat:
                 print("\r\nAggregating keys by pattern and type")
 
+            print("\r\nAggregating %d keys by pattern and type" % len(keys))
             keys = {k: self.get_pattern_aggregated_data(v) for k, v in keys.items()}
 
             if self.isTextFormat:
@@ -138,10 +141,12 @@ class RmaApplication(object):
             if self.behaviour == 'global' or is_all:
                 str_res.append(self.do_globals())
             if self.behaviour == 'scanner' or is_all:
+                print("\r\nProcessing scanner")
                 str_res.append(self.do_scanner(self.redis, keys))
             if self.behaviour == 'ram' or is_all:
                 str_res.append(self.do_ram(keys))
 
+        print("\r\nPrinting %d results" % len(str_res))
         self.reporter.print(str_res)
 
     def do_globals(self):
@@ -179,6 +184,7 @@ class RmaApplication(object):
 
     def get_pattern_aggregated_data(self, data):
         split_patterns = self.splitter.split((ptransform(obj["name"]) for obj in data))
+        print("\r\nFound %d patterns" % len(split_patterns))
         self.logger.debug(split_patterns)
 
         aggregate_patterns = {item: [] for item in split_patterns}
