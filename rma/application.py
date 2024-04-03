@@ -154,7 +154,7 @@ class RmaApplication(object):
                 self.logger.info("Processing ram")
                 str_res.append(self.do_ram(keys))
 
-        self.logger.info("Printing results" % len(str_res))
+        self.logger.info("Printing results")
         self.reporter.print(str_res)
 
     def do_globals(self):
