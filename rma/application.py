@@ -126,13 +126,12 @@ class RmaApplication(object):
         str_res = []
         is_all = self.behaviour == 'all'
         with Scanner(redis=self.redis, match=self.match, accepted_types=self.types) as scanner:
-            types = {}
+            types = defaultdict(list)
             records = list(scanner.scan(limit=self.limit))
             self.logger.info("Found %d records" % len(records))
             for v in records:
-                if v["type"] not in types:
-                    types[v["type"]] = []
                 types[v["type"]].append(v)
+            types = dict(types)
             self.logger.info("Found types: %s" % types.keys())
 
             if self.isTextFormat:
@@ -213,4 +212,4 @@ class RmaApplication(object):
                 aggregate_patterns[type].append(name)
             aggregate_patterns[replaced].append(name)
 
-        return aggregate_patterns
+        return dict(aggregate_patterns)
