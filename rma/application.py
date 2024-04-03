@@ -2,6 +2,8 @@ import sys
 import fnmatch
 import logging
 
+from tqdm import tqdm
+
 from rma.redis import RmaRedis
 from rma.scanner import Scanner
 from rma.splitter import SimpleSplitter
@@ -185,10 +187,10 @@ class RmaApplication(object):
     def get_pattern_aggregated_data(self, data):
         split_patterns = self.splitter.split((ptransform(obj["name"]) for obj in data))
         self.logger.info("Found %d patterns" % len(split_patterns))
-        self.logger.debug(split_patterns)
+        self.logger.info(split_patterns)
 
         aggregate_patterns = {item: [] for item in split_patterns}
-        for pattern in split_patterns:
+        for pattern in tqdm(split_patterns):
             aggregate_patterns[pattern] = list(filter(lambda obj: fnmatch.fnmatch(ptransform(obj["name"]), pattern), data))
 
         return aggregate_patterns
