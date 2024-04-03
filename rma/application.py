@@ -204,12 +204,12 @@ class RmaApplication(object):
             match = re.match(email_pattern, replaced)
             if match:
                 email = match.group()
-                aggregate_patterns[email].append(name)                
+                aggregate_patterns[email].append(obj)
                 replaced = re.sub(email_pattern, 'EMAIL', replaced)
             match = re.search(type_pattern, replaced)
             if match:
                 type = match.group()
-                aggregate_patterns[type].append(name)
-            aggregate_patterns[replaced].append(name)
+                aggregate_patterns[type].append(obj)
+            aggregate_patterns[replaced].append(obj)
 
         return dict(aggregate_patterns)
