@@ -1,6 +1,5 @@
 import re
 import sys
-import fnmatch
 import logging
 
 from tqdm import tqdm
@@ -118,6 +117,7 @@ class RmaApplication(object):
         self.types_rules[REDIS_TYPE_ID_SET].append(Set(redis=redis))
 
         self.types_rules[REDIS_TYPE_ID_ZSET].append(KeyString(redis=redis))
+        self.logger.info("Init types rules: %s" % self.types_rules)
 
     def run(self):
         self.init_types_rules(redis=self.redis)
@@ -126,10 +126,12 @@ class RmaApplication(object):
         str_res = []
         is_all = self.behaviour == 'all'
         with Scanner(redis=self.redis, match=self.match, accepted_types=self.types) as scanner:
-            types = defaultdict(list)
+            types = {}
             records = list(scanner.scan(limit=self.limit))
             self.logger.info("Found %d records" % len(records))
             for v in records:
+                if v["type"] not in types:
+                    types[v["type"]] = []
                 types[v["type"]].append(v)
             self.logger.info("Found types: %s" % types.keys())
 
