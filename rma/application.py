@@ -1,3 +1,4 @@
+import re
 import sys
 import fnmatch
 import logging
@@ -127,9 +128,11 @@ class RmaApplication(object):
         with Scanner(redis=self.redis, match=self.match, accepted_types=self.types) as scanner:
             keys = defaultdict(list)
             records = list(scanner.scan(limit=self.limit))
-            self.logger.info("Found %d keys" % len(records))
+            self.logger.info("Found %d records" % len(records))
             for v in records:
                 keys[v["type"]].append(v)
+            self.logger.info("Found %d keys" % len(keys))
+            self.logger.info("Keys: %s" % keys)
 
             if self.isTextFormat:
                 print("\r\nAggregating keys by pattern and type")
@@ -162,7 +165,7 @@ class RmaApplication(object):
         keys = []
         total = min(r.dbsize(), self.limit)
         for key, aggregate_patterns in res.items():
-            self.logger.debug("Processing type %s" % type_id_to_redis_type(key))
+            self.logger.info("Processing type %s" % type_id_to_redis_type(key))
             r_type = type_id_to_redis_type(key)
 
             for k, v in aggregate_patterns.items():
@@ -185,12 +188,23 @@ class RmaApplication(object):
         return {"stat": ret}
 
     def get_pattern_aggregated_data(self, data):
-        split_patterns = self.splitter.split((ptransform(obj["name"]) for obj in data))
-        self.logger.info("Found %d patterns" % len(split_patterns))
-        self.logger.info(split_patterns)
+        id_pattern = r'^([0-9a-f]+)-'
+        email_pattern = r'^[\w.]+@[\w]+.[\w]{2,4}'
+        type_pattern = r'(?<=-)[a-z]+(?:-[a-z]+)*$'
+        aggregate_patterns = defaultdict(list)
 
-        aggregate_patterns = {item: [] for item in split_patterns}
-        for pattern in tqdm(split_patterns):
-            aggregate_patterns[pattern] = list(filter(lambda obj: fnmatch.fnmatch(ptransform(obj["name"]), pattern), data))
+        for obj in tqdm(data):
+            name = ptransform(obj["name"])
+            replaced = re.sub(id_pattern, r'ID-', name)            
+            match = re.match(email_pattern, replaced)
+            if match:
+                email = match.group()
+                aggregate_patterns[email].append(name)                
+                replaced = re.sub(email_pattern, 'EMAIL', replaced)
+            match = re.search(type_pattern, replaced)
+            if match:
+                type = match.group()
+                aggregate_patterns[type].append(name)
+            aggregate_patterns[replaced].append(name)
 
         return aggregate_patterns
