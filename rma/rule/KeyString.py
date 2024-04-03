@@ -47,7 +47,7 @@ class KeyString(object):
                         desc="Processing keys",
                         leave=False)
         
-        self.logger.info("Processing keys: %s", keys)
+        self.logger.info("Processing keys: %s", keys.keys())
 
         for pattern, data in keys.items():
             used_bytes_iter, aligned_iter, encoding_iter, ttl_iter = tee(
