@@ -126,18 +126,20 @@ class RmaApplication(object):
         str_res = []
         is_all = self.behaviour == 'all'
         with Scanner(redis=self.redis, match=self.match, accepted_types=self.types) as scanner:
-            keys = defaultdict(list)
+            types = defaultdict(list)
             records = list(scanner.scan(limit=self.limit))
             self.logger.info("Found %d records" % len(records))
             for v in records:
-                keys[v["type"]].append(v)
-            self.logger.info("Found %d types" % len(keys))
+                types[v["type"]].append(v)
+            self.logger.info("Found types: %s" % types.keys())
 
             if self.isTextFormat:
                 print("\r\nAggregating keys by pattern and type")
 
             self.logger.info("Aggregating keys by pattern and type")
-            keys = {k: self.get_pattern_aggregated_data(v) for k, v in keys.items()}
+            keys = {k: self.get_pattern_aggregated_data(
+                v) for k, v in types.items()}
+            self.logger.info(keys)
 
             if self.isTextFormat:
                 print("\r\nApply rules")
@@ -148,7 +150,7 @@ class RmaApplication(object):
                 self.logger.info("Processing scanner")
                 str_res.append(self.do_scanner(self.redis, keys))
             if self.behaviour == 'ram' or is_all:
-                self.logger.info("Processing ram: %s" % keys)
+                self.logger.info("Processing ram")
                 str_res.append(self.do_ram(keys))
 
         self.logger.info("Printing results" % len(str_res))
