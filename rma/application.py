@@ -124,7 +124,7 @@ class RmaApplication(object):
         is_all = self.behaviour == 'all'
         with Scanner(redis=self.redis, match=self.match, accepted_types=self.types) as scanner:
             keys = defaultdict(list)
-            records = scanner.scan(limit=self.limit)
+            records = list(scanner.scan(limit=self.limit))
             self.logger.info("Found %d keys" % len(records))
             for v in records:
                 keys[v["type"]].append(v)
