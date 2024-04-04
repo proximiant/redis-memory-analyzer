@@ -110,5 +110,4 @@ class Scanner(object):
                 total += 1
                 if total > limit:
                     self.logger.info("Limit %s reached", limit)
-                    logging.info("\r\nzzzLimit %s reached", limit)
                     break

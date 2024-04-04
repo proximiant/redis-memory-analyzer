@@ -77,10 +77,6 @@ def main():
                         dest="format",
                         default="text",
                         help="Output type format: json or text (by default)")
-    parser.add_argument("-x", "--separator",
-                        dest="separator",
-                        default=":",
-                        help="Specify namespace separator. Default is ':'")
 
     options = parser.parse_args()
 

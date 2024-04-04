@@ -117,7 +117,6 @@ class RmaApplication(object):
         self.types_rules[REDIS_TYPE_ID_SET].append(Set(redis=redis))
 
         self.types_rules[REDIS_TYPE_ID_ZSET].append(KeyString(redis=redis))
-        self.logger.info("Init types rules: %s" % self.types_rules)
 
     def run(self):
         self.init_types_rules(redis=self.redis)
