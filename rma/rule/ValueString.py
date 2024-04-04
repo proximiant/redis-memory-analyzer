@@ -135,7 +135,7 @@ class ValueString(object):
             key_stat['data'].append(stat_entry)
 
         key_stat['data'].sort(key=lambda e: e[1], reverse=True)
-        key_stat['data'].append(make_total_row(key_stat['data'], ['Total:', sum, sum, 0, sum, 0, '', 0, 0, 0, min, max, math.nan]))
+        key_stat['data'].append(make_total_row(key_stat['data'], ['Total:', sum, sum, 0, sum, 0, '', 0, 0, 0, min, max, math.nan, math.nan]))
 
         progress.close()
 
