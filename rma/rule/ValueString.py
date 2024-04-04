@@ -65,7 +65,7 @@ class ValueString(object):
 
     def analyze(self, keys, total=0):
         key_stat = {
-            'headers': ['Match', "Count", "Useful", "Free", "Real", "Ratio", "Encoding", "Min", "Max", "Avg", "TTL Min", "TTL Max", "TTL Avg"],
+            'headers': ['Match', "Count", "Useful", "Free", "Real", "Ratio", "Encoding", "Min", "Max", "Avg", "TTL Min", "TTL Max", "TTL Avg", "IDLETIME P99"],
             'data': []
         }
 
@@ -81,6 +81,7 @@ class ValueString(object):
             aligned_bytes = []
             encodings = []
             ttl = []
+            idletime = []
 
             for key_info in progress_iterator(data, progress):
                 try:
@@ -90,6 +91,8 @@ class ValueString(object):
                         aligned_bytes.append(stat.aligned)
                         encodings.append(stat.encoding)
                         ttl.append(stat.ttl)
+                        if (len(idletime)) < 1000:
+                            idletime.append(self.redis.object('idletime', key_info["name"]))
                 except RedisError as e:
                     # This code works in real time so key me be deleted and this code fail
                     error_string = repr(e)
@@ -111,6 +114,7 @@ class ValueString(object):
             min_ttl  = min(ttl) if len(ttl) >= 1 else -1
             max_ttl  = max(ttl) if len(ttl) >= 1 else -1
             mean_ttl = statistics.mean(ttl) if len(ttl) > 1 else min_ttl
+            idletime_p99 = sorted(idletime)[int(len(idletime) * 0.99)] if len(idletime) > 1 else math.nan
 
             stat_entry = [
                 pattern,
@@ -126,6 +130,7 @@ class ValueString(object):
                 min_ttl,
                 max_ttl,
                 mean_ttl,
+                idletime_p99,
             ]
             key_stat['data'].append(stat_entry)
 
