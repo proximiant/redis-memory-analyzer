@@ -32,6 +32,7 @@ class Scanner(object):
                 local type = redis.call("TYPE", KEYS[i])
                 local encoding = redis.call("OBJECT", "ENCODING",KEYS[i])
                 local ttl = redis.call("TTL", KEYS[i])
+                local idle_time = redis.call("OBJECT", "IDLETIME", KEYS[i])
                 ret[i] = {type["ok"], encoding, ttl}
             end
             return cmsgpack.pack(ret)
