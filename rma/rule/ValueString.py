@@ -106,6 +106,8 @@ class ValueString(object):
                     if 'DEBUG' in error_string:
                         use_debug_command = False
 
+            self.logger.info("Max idle time %s for key %s", max_idletime, max_idle_key)
+    
             used_bytes = used_bytes if len(used_bytes) != 0 else [0]
             total_elements = len(used_bytes)
             used_user = sum(used_bytes)
@@ -150,7 +152,5 @@ class ValueString(object):
         key_stat['data'].append(make_total_row(key_stat['data'], ['Total:', sum, sum, 0, sum, 0, '', 0, 0, 0, min, max, math.nan, min, max, math.nan, math.nan]))
 
         progress.close()
-
-        self.logger.info("Max idle time %s for key %s", max_idletime, max_idle_key)
 
         return key_stat
