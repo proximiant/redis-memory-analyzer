@@ -140,7 +140,6 @@ class RmaApplication(object):
             self.logger.info("Aggregating keys by pattern and type")
             keys = {k: self.get_pattern_aggregated_data(
                 v) for k, v in types.items()}
-            self.logger.info(keys)
 
             if self.isTextFormat:
                 print("\r\nApply rules")
@@ -196,6 +195,7 @@ class RmaApplication(object):
         id_pattern = r'(?:(?<=^)|(?<=-))(?=[a-zA-Z0-9]*[0-9])[a-zA-Z0-9]{7,}'
         email_pattern = r'^[\w.]+@[\w]+.[\w]{2,4}'
         franchise_id_pattern = r'(?:(?<=^)|(?<=-))[0-9]{3,6}'
+        channel_id_pattern = r'(?<=-)\d+(?=-)'
         type_pattern = r'(?<=-)[a-z]+(?:-[a-z]+)*$'
         aggregate_patterns = defaultdict(list)
 
@@ -209,6 +209,7 @@ class RmaApplication(object):
                 aggregate_patterns['FRANCHISE-' + franchise_id].append(obj)
                 replaced = re.sub(franchise_id_pattern,
                                   'FRANCHISEID', replaced)
+            replaced = re.sub(channel_id_pattern, 'CHANNEL', replaced)
             match = re.search(type_pattern, replaced)
             if match:
                 type = match.group()
