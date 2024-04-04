@@ -66,7 +66,7 @@ class ValueString(object):
 
     def analyze(self, keys, total=0):
         key_stat = {
-            'headers': ['Match', "Count", "Useful", "Free", "Real", "Ratio", "Encoding", "Min", "Max", "Avg", "TTL Min", "TTL Max", "TTL Avg", "IDLETIME P99"],
+            'headers': ['Match', "Count", "Useful", "Free", "Real", "Ratio", "Encoding", "Min", "Max", "Avg", "TTL Min", "TTL Max", "TTL Avg", "IDLE Min", "IDLE Max", "IDLE Avg", "IDLE P99"],
             'data': []
         }
 
@@ -114,7 +114,10 @@ class ValueString(object):
             min_ttl  = min(ttl) if len(ttl) >= 1 else -1
             max_ttl  = max(ttl) if len(ttl) >= 1 else -1
             mean_ttl = statistics.mean(ttl) if len(ttl) > 1 else min_ttl
-            idletime_p99 = sorted(idletime)[int(len(idletime) * 0.99)] if len(idletime) > 1 else math.nan
+            min_idle = min(idletime) if len(idletime) >= 1 else -1
+            max_idle = max(idletime) if len(idletime) >= 1 else -1
+            mean_idle = statistics.mean(idletime) if len(idletime) > 1 else min_idle
+            p99_idle = sorted(idletime)[int(len(idletime) * 0.99)] if len(idletime) > 1 else math.nan
 
             stat_entry = [
                 pattern,
@@ -130,7 +133,10 @@ class ValueString(object):
                 min_ttl,
                 max_ttl,
                 mean_ttl,
-                idletime_p99,
+                min_idle,
+                max_idle,
+                mean_idle,
+                p99_idle
             ]
             key_stat['data'].append(stat_entry)
 
