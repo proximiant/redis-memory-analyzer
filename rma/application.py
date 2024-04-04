@@ -171,12 +171,13 @@ class RmaApplication(object):
             self.logger.info("Processing type %s" % r_type)
 
             for k, v in tqdm(aggregate_patterns.items()):
-                keys.append([k, len(v), r_type, floored_percentage(len(v) / total, 2)])
+                keys.append([k, len(v), r_type, floored_percentage(
+                    len(v) / total, 2), v[0]["name"]])
 
             self.logger.info("Done processing type %s" % r_type)
 
         keys.sort(key=lambda x: x[1], reverse=True)
-        return {"keys": {"data": keys, "headers": ['name', 'count', 'type', 'percent']}}
+        return {"keys": {"data": keys, "headers": ['name', 'count', 'type', 'percent', 'example']}}
 
     def do_ram(self, res):
         ret = {}
@@ -193,7 +194,7 @@ class RmaApplication(object):
 
     def get_pattern_aggregated_data(self, data):
         id_pattern = r'(?:(?<=^)|(?<=-))(?=[a-zA-Z0-9]*[0-9])[a-zA-Z0-9]{7,}'
-        email_pattern = r'^[\w.]+@[\w]+.[\w]{2,4}'
+        email_pattern = r'^[^@]+@[^@]+\.[^@]+?(?=-)'
         franchise_id_pattern = r'(?:(?<=^)|(?<=-))[0-9]{3,6}'
         channel_id_pattern = r'(?<=-)\d+(?=-)'
         type_pattern = r'(?<=-)[a-z]+(?:-[a-z]+)*$'
