@@ -193,26 +193,26 @@ class RmaApplication(object):
         return {"stat": ret}
 
     def get_pattern_aggregated_data(self, data):
-        id_pattern = r'^([0-9a-f]+)-'
+        id_pattern = r'(?:(?<=^)|(?<=-))(?=[a-zA-Z0-9]*[0-9])[a-zA-Z0-9]{7,}'
         email_pattern = r'^[\w.]+@[\w]+.[\w]{2,4}'
-        franchise_id_pattern = r'(?<=-)\d+'
+        franchise_id_pattern = r'(?:(?<=^)|(?<=-))[0-9]{3,6}'
         type_pattern = r'(?<=-)[a-z]+(?:-[a-z]+)*$'
         aggregate_patterns = defaultdict(list)
 
         for obj in tqdm(data):
             name = ptransform(obj["name"])
-            replaced = re.sub(id_pattern, 'ID-', name)            
+            replaced = re.sub(id_pattern, 'ID', name)            
             replaced = re.sub(email_pattern, 'EMAIL', replaced)
             match = re.search(franchise_id_pattern, replaced)
             if match:
                 franchise_id = match.group()
-                aggregate_patterns[franchise_id].append(obj)
+                aggregate_patterns['FRANCHISE-' + franchise_id].append(obj)
                 replaced = re.sub(franchise_id_pattern,
                                   'FRANCHISEID', replaced)
             match = re.search(type_pattern, replaced)
             if match:
                 type = match.group()
-                aggregate_patterns[type].append(obj)
+                aggregate_patterns[type].append(obj)            
             aggregate_patterns[replaced].append(obj)
 
         return dict(aggregate_patterns)
