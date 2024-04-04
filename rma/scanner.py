@@ -87,7 +87,7 @@ class Scanner(object):
             total = 0
             for key_tuple in self.batch_scan():
                 key_info, key_name = key_tuple
-                key_type, key_encoding, key_ttl = key_info
+                key_type, key_encoding, key_ttl, key_idle_time = key_info
                 if not key_name:
                     self.logger.warning(
                         '\r\nWarning! Scan iterator return key with empty name `` and type %s', key_type)
@@ -100,7 +100,7 @@ class Scanner(object):
                         'type': to_id,
                         'encoding': redis_encoding_str_to_id(key_encoding),
                         'ttl': key_ttl,
-                        'idle_time': 
+                        'idle_time': key_idle_time,
                     }
                     yield key_info_obj
 
