@@ -20,18 +20,6 @@ Pre-Requisites :
 1. python >= 3.5 and pip.
 2. redis-py.
 
-To install from PyPI (recommended) :
-
-::
-
-    pip install rma
-
-To install from source :
-
-::
-
-    pip install git+https://github.com/gamenet/redis-memory-analyzer@v0.2.0
-
 Running
 -------
 
@@ -39,9 +27,9 @@ After install used it from console:
 
 ::
 
-    >rma --help
-    usage: rma [-h] [-s HOST] [-p PORT] [-a PASSWORD] [-d DB] [-m MATCH] [-l LIMIT]
-               [-b BEHAVIOUR] [-t TYPES]
+    >python -m rma.cli.rma_cli --help
+    usage: [-h] [-s HOST] [-p PORT] [-a PASSWORD] [-d DB] [-m MATCH] [-l LIMIT]
+           [-b BEHAVIOUR] [-t TYPES]
 
     RMA is used to scan Redis key space in and aggregate memory usage statistic by
     key patterns.
@@ -61,7 +49,7 @@ After install used it from console:
                                  not specified, all data types will be returned.
                                  Allowed values arestring, hash, list, set, zset
       -f --format TYPE           Output type format: json or text (by default)
-      -x --separator SEPARATOR   Specify namespace separator. Default is ':'
+      --ssl                      SSL will be used for connection
 
 If you have large database try running first with ``--limit`` option to
 run first limited amount of keys. Also run with ``--types`` to limit
@@ -71,6 +59,12 @@ queue with LUA (like in scanner does). So this option may be very
 useful. You can choose what kind of data would be aggregated from Redis
 node using ``-b (--behaviour)`` option as console argument. Supported
 behaviours are 'global', 'scanner', 'ram' and 'all'.
+
+example:
+
+::
+
+    >python -m rma.cli.rma_cli -s master.prod-botlet-redis-004.yf5csa.usw2.cache.amazonaws.com -p 6379 --ssl -l 10000
 
 Internals
 ---------
@@ -222,20 +216,3 @@ as ``redis-lint`` tools which can say you
 ``Hey, change this from this to this and save 30% of RAM``,
 ``Hey, you are using PHP serializer for strings - change to msgpack and save 15% of RAM``
 and so on.
-
-License
--------
-
-This application was developed for using in
-`GameNet <https://gamenet.ru/>`__ project as part of Redis memory
-optimizations and analise. RMA is licensed under the MIT License. See
-`LICENSE <https://github.com/gamenet/redis-memory-analyzer/blob/master/LICENSE>`__
-
-.. |PyPI version| image:: https://badge.fury.io/py/rma.svg
-   :target: https://badge.fury.io/py/rma
-.. |Build Status| image:: https://travis-ci.org/gamenet/redis-memory-analyzer.svg?branch=master
-   :target: https://travis-ci.org/gamenet/redis-memory-analyzer
-.. |Code Health| image:: https://landscape.io/github/gamenet/redis-memory-analyzer/master/landscape.svg?style=flat-square
-   :target: https://landscape.io/github/gamenet/redis-memory-analyzer/master
-.. |GitHub license| image:: https://img.shields.io/badge/license-MIT-blue.svg
-   :target: https://raw.githubusercontent.com/gamenet/redis-memory-analyzer/master/LICENSE

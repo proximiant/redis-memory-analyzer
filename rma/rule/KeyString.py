@@ -1,3 +1,4 @@
+import logging
 import statistics
 from tqdm import tqdm
 from itertools import tee
@@ -27,6 +28,7 @@ class KeyString(object):
         :return:
         """
         self.redis = redis
+        self.logger = logging.getLogger(__name__)
 
     def analyze(self, keys, total=0):
         """
@@ -44,6 +46,8 @@ class KeyString(object):
                         mininterval=1,
                         desc="Processing keys",
                         leave=False)
+        
+        self.logger.info("Processing %d keys" % total)
 
         for pattern, data in keys.items():
             used_bytes_iter, aligned_iter, encoding_iter, ttl_iter = tee(

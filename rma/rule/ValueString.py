@@ -33,6 +33,7 @@ class RealStringEntry(object):
         key_name = info["name"]
         self.encoding = info["encoding"]
         self.ttl = info["ttl"]
+        self.idle_time = info["idle_time"]
         self.logger = logging.getLogger(__name__)
 
         if self.encoding == REDIS_ENCODING_ID_INT:
@@ -65,7 +66,7 @@ class ValueString(object):
 
     def analyze(self, keys, total=0):
         key_stat = {
-            'headers': ['Match', "Count", "Useful", "Free", "Real", "Ratio", "Encoding", "Min", "Max", "Avg", "TTL Min", "TTL Max", "TTL Avg"],
+            'headers': ['Match', "Count", "Useful", "Free", "Real", "Ratio", "Encoding", "Min", "Max", "Avg", "TTL Min", "TTL Max", "TTL Avg", "IDLE Min", "IDLE Max", "IDLE Avg", "IDLE P99"],
             'data': []
         }
 
@@ -81,6 +82,9 @@ class ValueString(object):
             aligned_bytes = []
             encodings = []
             ttl = []
+            idletime = []
+            max_idletime = 0
+            max_idle_key = None
 
             for key_info in progress_iterator(data, progress):
                 try:
@@ -90,6 +94,11 @@ class ValueString(object):
                         aligned_bytes.append(stat.aligned)
                         encodings.append(stat.encoding)
                         ttl.append(stat.ttl)
+                        idletime.append(stat.idle_time)
+                        if stat.idle_time > max_idletime:
+                            max_idletime = stat.idle_time
+                            max_idle_key = key_info["name"]
+
                 except RedisError as e:
                     # This code works in real time so key me be deleted and this code fail
                     error_string = repr(e)
@@ -97,6 +106,8 @@ class ValueString(object):
                     if 'DEBUG' in error_string:
                         use_debug_command = False
 
+            self.logger.info("Max idle time %s for key %s", max_idletime, max_idle_key)
+    
             used_bytes = used_bytes if len(used_bytes) != 0 else [0]
             total_elements = len(used_bytes)
             used_user = sum(used_bytes)
@@ -111,6 +122,10 @@ class ValueString(object):
             min_ttl  = min(ttl) if len(ttl) >= 1 else -1
             max_ttl  = max(ttl) if len(ttl) >= 1 else -1
             mean_ttl = statistics.mean(ttl) if len(ttl) > 1 else min_ttl
+            min_idle = min(idletime) if len(idletime) >= 1 else -1
+            max_idle = max(idletime) if len(idletime) >= 1 else -1
+            mean_idle = statistics.mean(idletime) if len(idletime) > 1 else min_idle
+            p99_idle = sorted(idletime)[int(len(idletime) * 0.99)] if len(idletime) > 1 else math.nan
 
             stat_entry = [
                 pattern,
@@ -126,11 +141,15 @@ class ValueString(object):
                 min_ttl,
                 max_ttl,
                 mean_ttl,
+                min_idle,
+                max_idle,
+                mean_idle,
+                p99_idle
             ]
             key_stat['data'].append(stat_entry)
 
         key_stat['data'].sort(key=lambda e: e[1], reverse=True)
-        key_stat['data'].append(make_total_row(key_stat['data'], ['Total:', sum, sum, 0, sum, 0, '', 0, 0, 0, min, max, math.nan]))
+        key_stat['data'].append(make_total_row(key_stat['data'], ['Total:', sum, sum, 0, sum, 0, '', 0, 0, 0, min, max, math.nan, min, max, math.nan, math.nan]))
 
         progress.close()
 

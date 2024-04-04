@@ -1,6 +1,8 @@
+import re
 import sys
-import fnmatch
 import logging
+
+from tqdm import tqdm
 
 from rma.redis import RmaRedis
 from rma.scanner import Scanner
@@ -123,14 +125,20 @@ class RmaApplication(object):
         str_res = []
         is_all = self.behaviour == 'all'
         with Scanner(redis=self.redis, match=self.match, accepted_types=self.types) as scanner:
-            keys = defaultdict(list)
-            for v in scanner.scan(limit=self.limit):
-                keys[v["type"]].append(v)
+            types = defaultdict(list)
+            records = list(scanner.scan(limit=self.limit))
+            self.logger.info("Found %d records" % len(records))
+            for v in records:
+                types[v["type"]].append(v)
+            types = dict(types)
+            self.logger.info("Found types: %s" % types.keys())
 
             if self.isTextFormat:
                 print("\r\nAggregating keys by pattern and type")
 
-            keys = {k: self.get_pattern_aggregated_data(v) for k, v in keys.items()}
+            self.logger.info("Aggregating keys by pattern and type")
+            keys = {k: self.get_pattern_aggregated_data(
+                v) for k, v in types.items()}
 
             if self.isTextFormat:
                 print("\r\nApply rules")
@@ -138,10 +146,13 @@ class RmaApplication(object):
             if self.behaviour == 'global' or is_all:
                 str_res.append(self.do_globals())
             if self.behaviour == 'scanner' or is_all:
+                self.logger.info("Processing scanner")
                 str_res.append(self.do_scanner(self.redis, keys))
             if self.behaviour == 'ram' or is_all:
+                self.logger.info("Processing ram")
                 str_res.append(self.do_ram(keys))
 
+        self.logger.info("Printing results")
         self.reporter.print(str_res)
 
     def do_globals(self):
@@ -155,22 +166,25 @@ class RmaApplication(object):
         keys = []
         total = min(r.dbsize(), self.limit)
         for key, aggregate_patterns in res.items():
-            self.logger.debug("Processing type %s" % type_id_to_redis_type(key))
             r_type = type_id_to_redis_type(key)
+            self.logger.info("Processing type %s" % r_type)
 
-            for k, v in aggregate_patterns.items():
-                keys.append([k, len(v), r_type, floored_percentage(len(v) / total, 2)])
-                keys.sort(key=lambda x: x[1], reverse=True)
+            for k, v in tqdm(aggregate_patterns.items()):
+                keys.append([k, len(v), r_type, floored_percentage(
+                    len(v) / total, 2), v[0]["name"]])
 
-        return {"keys": {"data": keys, "headers": ['name', 'count', 'type', 'percent']}}
+            self.logger.info("Done processing type %s" % r_type)
+
+        keys.sort(key=lambda x: x[1], reverse=True)
+        return {"keys": {"data": keys, "headers": ['name', 'count', 'type', 'percent', 'example']}}
 
     def do_ram(self, res):
         ret = {}
 
         for key, aggregate_patterns in res.items():
-            self.logger.debug("Processing type %s" % type_id_to_redis_type(key))
+            redis_type = type_id_to_redis_type(key)
+            self.logger.info("Processing type %s" % redis_type)
             if key in self.types_rules and key in self.types:
-                redis_type = type_id_to_redis_type(key)
                 for rule in self.types_rules[key]:
                     total_keys = sum(len(values) for key, values in aggregate_patterns.items())
                     ret[redis_type] = rule.analyze(keys=aggregate_patterns, total=total_keys)
@@ -178,11 +192,28 @@ class RmaApplication(object):
         return {"stat": ret}
 
     def get_pattern_aggregated_data(self, data):
-        split_patterns = self.splitter.split((ptransform(obj["name"]) for obj in data))
-        self.logger.debug(split_patterns)
+        id_pattern = r'(?:(?<=^)|(?<=-))(?=[a-zA-Z0-9]*[0-9])[a-zA-Z0-9]{7,}'
+        email_pattern = r'^[^@]+@[^@]+\.[^@]+?(?=-)'
+        franchise_id_pattern = r'(?:(?<=^)|(?<=-))[0-9]{3,6}'
+        channel_id_pattern = r'(?<=-)\d+(?=-)'
+        type_pattern = r'(?<=-)[a-z]+(?:-[a-z]+)*$'
+        aggregate_patterns = defaultdict(list)
 
-        aggregate_patterns = {item: [] for item in split_patterns}
-        for pattern in split_patterns:
-            aggregate_patterns[pattern] = list(filter(lambda obj: fnmatch.fnmatch(ptransform(obj["name"]), pattern), data))
+        for obj in tqdm(data):
+            name = ptransform(obj["name"])
+            replaced = re.sub(id_pattern, 'ID', name)            
+            replaced = re.sub(email_pattern, 'EMAIL', replaced)
+            match = re.search(franchise_id_pattern, replaced)
+            if match:
+                franchise_id = match.group()
+                aggregate_patterns['FRANCHISE-' + franchise_id].append(obj)
+                replaced = re.sub(franchise_id_pattern,
+                                  'FRANCHISEID', replaced)
+            replaced = re.sub(channel_id_pattern, 'CHANNEL', replaced)
+            match = re.search(type_pattern, replaced)
+            if match:
+                type = match.group()
+                aggregate_patterns[type].append(obj)            
+            aggregate_patterns[replaced].append(obj)
 
-        return aggregate_patterns
+        return dict(aggregate_patterns)
