@@ -33,6 +33,7 @@ class RealStringEntry(object):
         key_name = info["name"]
         self.encoding = info["encoding"]
         self.ttl = info["ttl"]
+        self.idle_time = info["idle_time"]
         self.logger = logging.getLogger(__name__)
 
         if self.encoding == REDIS_ENCODING_ID_INT:
@@ -91,10 +92,7 @@ class ValueString(object):
                         aligned_bytes.append(stat.aligned)
                         encodings.append(stat.encoding)
                         ttl.append(stat.ttl)
-                        if (len(idletime)) < 1000:
-                            key_idle_time = self.redis.object('idletime', key_info["name"])
-                            self.logger.info("Key: %s, Idle time: %s" % (key_info["name"], key_idle_time))
-                            idletime.append(key_idle_time)
+                        idletime.append(stat.idle_time)
                 except RedisError as e:
                     # This code works in real time so key me be deleted and this code fail
                     error_string = repr(e)

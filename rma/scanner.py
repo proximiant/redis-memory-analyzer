@@ -76,7 +76,8 @@ class Scanner(object):
             pipe.type(key)
             pipe.object('ENCODING', key)
             pipe.ttl(key)
-        key_with_types = [{'type': x, 'encoding': y, 'ttl': z} for x, y, z in chunker(pipe.execute(), 3)]
+            pipe.object('IDLETIME', key)
+        key_with_types = [{'type': x, 'encoding': y, 'ttl': z, 'idle_time': w} for x, y, z, w in chunker(pipe.execute(), 4)]
         return key_with_types
 
     def scan(self, limit=1000):
@@ -98,7 +99,8 @@ class Scanner(object):
                         'name': key_name.decode("utf-8", "replace"),
                         'type': to_id,
                         'encoding': redis_encoding_str_to_id(key_encoding),
-                        'ttl': key_ttl
+                        'ttl': key_ttl,
+                        'idle_time': 
                     }
                     yield key_info_obj
 
