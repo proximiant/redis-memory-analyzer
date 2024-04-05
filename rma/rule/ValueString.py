@@ -67,7 +67,7 @@ class ValueString(object):
 
     def analyze(self, keys, total=0, total_records=0):
         key_stat = {
-            'headers': ['Match', "Count", "Useful", "Free", "Real", "Ratio", "Encoding", "Min", "Max", "Avg", "Percent Memory", "TTL Min", "TTL Max", "TTL Avg", "IDLE Min", "IDLE Max", "IDLE Avg", "IDLE P99"],
+            'headers': ['Match', "Count", "Useful", "Free", "Real", "Ratio", "Encoding", "Min", "Max", "Avg", "Memory %", "TTL Min", "TTL Max", "TTL Avg", "IDLE Min", "IDLE Max", "IDLE Avg", "IDLE P99"],
             'data': []
         }
 
@@ -123,7 +123,7 @@ class ValueString(object):
 
             number_records = len(data) / total_records * self.redis.dbsize()
             total_size = number_records * mean_bytes
-            percent_size = floored_percentage(total_size / self.redis.info('memory')['used_memory'], 2)
+            percent_size = total_size / self.redis.info('memory')['used_memory']
 
             stat_entry = [
                 pattern,
@@ -149,7 +149,8 @@ class ValueString(object):
 
         key_stat['data'].sort(key=lambda e: e[1], reverse=True)
         key_stat['data'].append(make_total_row(key_stat['data'], [
-                                'Total:', sum, sum, 0, sum, 0, '', 0, 0, 0, min, max, math.nan, math.nan, min, max, math.nan, math.nan]))
+                                'Total:', sum, sum, 0, sum, 0, '', 0, 0, 0, min, max, 
+                                math.nan, math.nan, min, max, math.nan, math.nan]))
 
         progress.close()
 
