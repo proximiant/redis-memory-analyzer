@@ -6,7 +6,6 @@ from tqdm import tqdm
 
 from rma.redis import RmaRedis
 from rma.scanner import Scanner
-from rma.splitter import SimpleSplitter
 from rma.redis_types import *
 from rma.rule import *
 from rma.reporters import *
@@ -81,10 +80,9 @@ class RmaApplication(object):
         REDIS_TYPE_ID_ZSET: [],
     }
 
-    def __init__(self, host="127.0.0.1", port=6367, password=None, db=0, ssl=False, match="*", limit=0, filters=None, logger=None, format="text", separator=":"):
+    def __init__(self, host="127.0.0.1", port=6367, password=None, db=0, ssl=False, match="*", limit=0, filters=None, logger=None, format="text"):
         self.logger = logger or logging.getLogger(__name__)
 
-        self.splitter = SimpleSplitter(separator)
         self.isTextFormat = format == "text"
         self.reporter = TextReporter() if self.isTextFormat else JsonReporter()
         self.redis = connect_to_redis(host=host, port=port, db=db, password=password, ssl=ssl)

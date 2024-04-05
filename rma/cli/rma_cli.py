@@ -98,8 +98,7 @@ def main():
                 filters['types'].append(x)
 
     app = RmaApplication(host=options.host, port=options.port, db=options.db, password=options.password,
-                         ssl=options.ssl, match=options.match, limit=options.limit, filters=filters, format=options.format,
-                         separator=options.separator)
+                         ssl=options.ssl, match=options.match, limit=options.limit, filters=filters, format=options.format)
 
     start_time = time_clock()
     app.run()
