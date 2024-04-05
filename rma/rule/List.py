@@ -91,7 +91,7 @@ class List(object):
         """
         self.redis = redis
 
-    def analyze(self, keys, total=0):
+    def analyze(self, keys, total=0, total_records=0):
         key_stat = {
             'headers': ['Match', "Count", "Avg Count", "Min Count", "Max Count", "Stdev Count", "Value mem", "Real", "Ratio", "System", "Encoding", "Total", 'TTL Min', 'TTL Max', 'TTL Avg'],
             'data': []

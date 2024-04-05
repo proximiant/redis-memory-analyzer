@@ -1,6 +1,7 @@
 import statistics
 import logging
 from tqdm import tqdm
+from rma.helpers.formating import floored_percentage
 from rma.redis import *
 from rma.helpers import pref_encoding, make_total_row, progress_iterator
 from redis.exceptions import RedisError, ResponseError
@@ -64,9 +65,9 @@ class ValueString(object):
         self.redis = redis
         self.logger = logging.getLogger(__name__)
 
-    def analyze(self, keys, total=0):
+    def analyze(self, keys, total=0, total_records=0):
         key_stat = {
-            'headers': ['Match', "Count", "Useful", "Free", "Real", "Ratio", "Encoding", "Min", "Max", "Avg", "TTL Min", "TTL Max", "TTL Avg", "IDLE Min", "IDLE Max", "IDLE Avg", "IDLE P99"],
+            'headers': ['Match', "Count", "Useful", "Free", "Real", "Ratio", "Encoding", "Min", "Max", "Avg", "Percent Memory", "TTL Min", "TTL Max", "TTL Avg", "IDLE Min", "IDLE Max", "IDLE Avg", "IDLE P99"],
             'data': []
         }
 
@@ -127,6 +128,10 @@ class ValueString(object):
             mean_idle = statistics.mean(idletime) if len(idletime) > 1 else min_idle
             p99_idle = sorted(idletime)[int(len(idletime) * 0.99)] if len(idletime) > 1 else math.nan
 
+            number_records = len(data) / total_records * self.redis.dbsize()
+            total_size = number_records * mean_bytes
+            percent_size = floored_percentage(total_size / self.redis.info('memory')['used_memory'], 2)
+
             stat_entry = [
                 pattern,
                 total_elements,
@@ -138,6 +143,7 @@ class ValueString(object):
                 min_bytes,
                 max_bytes,
                 mean_bytes,
+                percent_size,
                 min_ttl,
                 max_ttl,
                 mean_ttl,
@@ -149,7 +155,8 @@ class ValueString(object):
             key_stat['data'].append(stat_entry)
 
         key_stat['data'].sort(key=lambda e: e[1], reverse=True)
-        key_stat['data'].append(make_total_row(key_stat['data'], ['Total:', sum, sum, 0, sum, 0, '', 0, 0, 0, min, max, math.nan, min, max, math.nan, math.nan]))
+        key_stat['data'].append(make_total_row(key_stat['data'], [
+                                'Total:', sum, sum, 0, sum, 0, '', 0, 0, 0, min, max, math.nan, math.nan, min, max, math.nan, math.nan]))
 
         progress.close()
 

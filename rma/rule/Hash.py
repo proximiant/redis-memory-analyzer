@@ -103,7 +103,7 @@ class Hash(object):
         """
         self.redis = redis
 
-    def analyze(self, keys, total=0):
+    def analyze(self, keys, total=0, total_records=0):
         key_stat = {
             'headers': ['Match', "Count", "Avg field count", "Key mem", "Real", "Ratio", "Value mem", "Real", "Ratio",
                         "System", "Encoding", "Total mem", "Total aligned", "TTL Min", "TTL Max", "TTL Avg."],

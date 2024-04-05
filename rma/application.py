@@ -180,14 +180,15 @@ class RmaApplication(object):
 
     def do_ram(self, res):
         ret = {}
+        total_records = min(self.redis.dbsize(), self.limit)
 
         for key, aggregate_patterns in res.items():
             redis_type = type_id_to_redis_type(key)
             self.logger.info("Processing type %s" % redis_type)
             if key in self.types_rules and key in self.types:
                 for rule in self.types_rules[key]:
-                    total_keys = sum(len(values) for key, values in aggregate_patterns.items())
-                    ret[redis_type] = rule.analyze(keys=aggregate_patterns, total=total_keys)
+                    total_keys = sum(len(values) for _, values in aggregate_patterns.items())
+                    ret[redis_type] = rule.analyze(keys=aggregate_patterns, total=total_keys, total_records=total_records)
 
         return {"stat": ret}
 

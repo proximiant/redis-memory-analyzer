@@ -30,7 +30,7 @@ class KeyString(object):
         self.redis = redis
         self.logger = logging.getLogger(__name__)
 
-    def analyze(self, keys, total=0):
+    def analyze(self, keys, total=0, total_records=0):
         """
 
         :param keys:
