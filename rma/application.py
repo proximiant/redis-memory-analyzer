@@ -152,7 +152,7 @@ class RmaApplication(object):
                 str_res.append(self.do_ram(keys))
 
         self.logger.info("Printing results")
-        self.reporter.print(str_res, self.report_limit)
+        self.reporter.print(str_res)
 
     def do_globals(self):
         nodes = []
@@ -175,6 +175,7 @@ class RmaApplication(object):
             self.logger.info("Done processing type %s" % r_type)
 
         keys.sort(key=lambda x: x[1], reverse=True)
+        keys = keys[:self.report_limit]
         return {"keys": {"data": keys, "headers": ['name', 'count', 'type', 'percent', 'example']}}
 
     def do_ram(self, res):
@@ -188,6 +189,7 @@ class RmaApplication(object):
                 for rule in self.types_rules[key]:
                     total_keys = sum(len(values) for _, values in aggregate_patterns.items())
                     ret[redis_type] = rule.analyze(keys=aggregate_patterns, total=total_keys, total_records=total_records)
+                    ret[redis_type]['data'] = ret[redis_type]['data'][:self.report_limit]
 
         return {"stat": ret}
 
