@@ -84,8 +84,6 @@ class ValueString(object):
             encodings = []
             ttl = []
             idletime = []
-            max_idletime = 0
-            max_idle_key = None
 
             for key_info in progress_iterator(data, progress):
                 try:
@@ -96,9 +94,6 @@ class ValueString(object):
                         encodings.append(stat.encoding)
                         ttl.append(stat.ttl)
                         idletime.append(stat.idle_time)
-                        if stat.idle_time > max_idletime:
-                            max_idletime = stat.idle_time
-                            max_idle_key = key_info["name"]
 
                 except RedisError as e:
                     # This code works in real time so key me be deleted and this code fail
@@ -107,8 +102,6 @@ class ValueString(object):
                     if 'DEBUG' in error_string:
                         use_debug_command = False
 
-            self.logger.info("Max idle time %s for key %s", max_idletime, max_idle_key)
-    
             used_bytes = used_bytes if len(used_bytes) != 0 else [0]
             total_elements = len(used_bytes)
             used_user = sum(used_bytes)
