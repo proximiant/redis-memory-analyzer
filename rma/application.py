@@ -80,7 +80,7 @@ class RmaApplication(object):
         REDIS_TYPE_ID_ZSET: [],
     }
 
-    def __init__(self, host="127.0.0.1", port=6367, password=None, db=0, ssl=False, match="*", limit=0, filters=None, logger=None, format="text"):
+    def __init__(self, host="127.0.0.1", port=6367, password=None, db=0, ssl=False, match="*", limit=0, filters=None, logger=None, format="text", report_limit=0):
         self.logger = logger or logging.getLogger(__name__)
 
         self.isTextFormat = format == "text"
@@ -89,6 +89,7 @@ class RmaApplication(object):
 
         self.match = match
         self.limit = limit if limit != 0 else sys.maxsize
+        self.report_limit = report_limit if report_limit != 0 else 100
 
         if 'types' in filters:
             self.types = list(map(redis_type_to_id, filters['types']))
@@ -151,7 +152,7 @@ class RmaApplication(object):
                 str_res.append(self.do_ram(keys))
 
         self.logger.info("Printing results")
-        self.reporter.print(str_res)
+        self.reporter.print(str_res, self.report_limit)
 
     def do_globals(self):
         nodes = []

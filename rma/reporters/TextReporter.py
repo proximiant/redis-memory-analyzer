@@ -2,15 +2,15 @@ from tabulate import tabulate
 
 
 class TextReporter:
-    def print(self, data):
+    def print(self, data, report_limit):
 
         for report in data:
             if "nodes" in report:
                 self.print_nodes(report['nodes'])
             elif "keys" in report:
-                self.print_keys(report['keys'])
+                self.print_keys(report['keys'][:report_limit])
             elif "stat" in report:
-                self.print_keys_stat(report['stat'])
+                self.print_keys_stat(report['stat'][:report_limit])
             else:
                 self.print_unsupported(report)
 

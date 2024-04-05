@@ -123,7 +123,7 @@ class ValueString(object):
 
             number_records = len(data) / total_records * self.redis.dbsize()
             total_size = number_records * mean_bytes
-            percent_size = total_size / self.redis.info('memory')['used_memory']
+            percent_size = 100 * total_size / self.redis.info('memory')['used_memory']
 
             stat_entry = [
                 pattern,

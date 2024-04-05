@@ -77,6 +77,11 @@ def main():
                         dest="format",
                         default="text",
                         help="Output type format: json or text (by default)")
+    parser.add_argument("-rl", "--report_limit",
+                        dest="report_limit",
+                        default="0",
+                        type=int,
+                        help="Get max key for report")
 
     options = parser.parse_args()
 
@@ -98,7 +103,8 @@ def main():
                 filters['types'].append(x)
 
     app = RmaApplication(host=options.host, port=options.port, db=options.db, password=options.password,
-                         ssl=options.ssl, match=options.match, limit=options.limit, filters=filters, format=options.format)
+                         ssl=options.ssl, match=options.match, limit=options.limit, filters=filters, format=options.format,
+                         report_limit=options.report_limit)
 
     start_time = time_clock()
     app.run()
