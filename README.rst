@@ -18,7 +18,7 @@ Installing rma
 Pre-Requisites :
 
 1. python >= 3.5 and pip.
-2. redis-py.
+2. pip install -r requirements.txt
 
 Running
 -------

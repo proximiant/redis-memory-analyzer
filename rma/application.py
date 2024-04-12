@@ -6,7 +6,6 @@ from tqdm import tqdm
 
 from rma.redis import RmaRedis
 from rma.scanner import Scanner
-from rma.splitter import SimpleSplitter
 from rma.redis_types import *
 from rma.rule import *
 from rma.reporters import *
@@ -81,16 +80,16 @@ class RmaApplication(object):
         REDIS_TYPE_ID_ZSET: [],
     }
 
-    def __init__(self, host="127.0.0.1", port=6367, password=None, db=0, ssl=False, match="*", limit=0, filters=None, logger=None, format="text", separator=":"):
+    def __init__(self, host="127.0.0.1", port=6367, password=None, db=0, ssl=False, match="*", limit=0, filters=None, logger=None, format="text", report_limit=0):
         self.logger = logger or logging.getLogger(__name__)
 
-        self.splitter = SimpleSplitter(separator)
         self.isTextFormat = format == "text"
         self.reporter = TextReporter() if self.isTextFormat else JsonReporter()
         self.redis = connect_to_redis(host=host, port=port, db=db, password=password, ssl=ssl)
 
         self.match = match
         self.limit = limit if limit != 0 else sys.maxsize
+        self.report_limit = report_limit if report_limit != 0 else 100
 
         if 'types' in filters:
             self.types = list(map(redis_type_to_id, filters['types']))
@@ -176,18 +175,21 @@ class RmaApplication(object):
             self.logger.info("Done processing type %s" % r_type)
 
         keys.sort(key=lambda x: x[1], reverse=True)
+        keys = keys[:self.report_limit]
         return {"keys": {"data": keys, "headers": ['name', 'count', 'type', 'percent', 'example']}}
 
     def do_ram(self, res):
         ret = {}
+        total_records = min(self.redis.dbsize(), self.limit)
 
         for key, aggregate_patterns in res.items():
             redis_type = type_id_to_redis_type(key)
             self.logger.info("Processing type %s" % redis_type)
             if key in self.types_rules and key in self.types:
                 for rule in self.types_rules[key]:
-                    total_keys = sum(len(values) for key, values in aggregate_patterns.items())
-                    ret[redis_type] = rule.analyze(keys=aggregate_patterns, total=total_keys)
+                    total_keys = sum(len(values) for _, values in aggregate_patterns.items())
+                    ret[redis_type] = rule.analyze(keys=aggregate_patterns, total=total_keys, total_records=total_records)
+                    ret[redis_type]['data'] = ret[redis_type]['data'][:self.report_limit]
 
         return {"stat": ret}
 
