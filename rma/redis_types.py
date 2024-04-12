@@ -39,7 +39,7 @@ REDIS_ENCODING_STR_TO_ID_LIB = {
     b'raw': REDIS_ENCODING_ID_RAW,
     b'int': REDIS_ENCODING_ID_INT,
     b'embstr': REDIS_ENCODING_ID_EMBSTR,
-    'embstr': REDIS_ENCODING_ID_EMBSTR,
+    b'embstr': REDIS_ENCODING_ID_EMBSTR,
     b'hashtable': REDIS_ENCODING_ID_HASHTABLE,
     b'ziplist': REDIS_ENCODING_ID_ZIPLIST,
     b'linkedlist': REDIS_ENCODING_ID_LINKEDLIST,
@@ -52,6 +52,8 @@ REDIS_ENCODING_ID_TO_STR_LIB = dict((v, k) for k, v in REDIS_ENCODING_STR_TO_ID_
 
 
 def redis_encoding_str_to_id(key_encoding):
+    if isinstance(key_encoding, str):
+        key_encoding = bytes(key_encoding, 'utf-8')
     if key_encoding in REDIS_ENCODING_STR_TO_ID_LIB:
         return REDIS_ENCODING_STR_TO_ID_LIB[key_encoding]
 
