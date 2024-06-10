@@ -199,7 +199,7 @@ class RmaApplication(object):
         franchise_id_pattern = r'(?:(?<=^)|(?<=-))[0-9]{3,6}'
         channel_id_pattern = r'(?<=-)\d+(?=-)'
         type_pattern = r'(?<=-)[a-z]+(?:-[a-z]+)*$'
-        delimiter_pattern = r'^([a-zA-Z0-0]+):'
+        delimiter_pattern = r'^([a-zA-Z0-9]+[_a-zA-Z0-9]*):'
         aggregate_patterns = defaultdict(list)
 
         for obj in tqdm(data):
@@ -217,7 +217,10 @@ class RmaApplication(object):
             if match:
                 type = match.group()
                 aggregate_patterns[type].append(obj)            
-            replaced = re.sub(delimiter_pattern, r'\1-', replaced)
+            match = re.search(delimiter_pattern, replaced)
+            if match:
+                name = match.group(1)
+                aggregate_patterns[name].append(obj)
             aggregate_patterns[replaced].append(obj)
 
         return dict(aggregate_patterns)
