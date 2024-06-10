@@ -217,7 +217,7 @@ class RmaApplication(object):
             if match:
                 type = match.group()
                 aggregate_patterns[type].append(obj)            
-            replaced = re.sub(delimiter_pattern, '$1', replaced)
+            replaced = re.sub(delimiter_pattern, r'\1-', replaced)
             aggregate_patterns[replaced].append(obj)
 
         return dict(aggregate_patterns)
