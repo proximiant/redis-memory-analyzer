@@ -194,11 +194,12 @@ class RmaApplication(object):
         return {"stat": ret}
 
     def get_pattern_aggregated_data(self, data):
-        id_pattern = r'(?:(?<=^)|(?<=-))(?=[a-zA-Z0-9]*[0-9])[a-zA-Z0-9]{7,}'
+        id_pattern = r'(?:(?<=^)|(?<=[-_]))(?=[a-zA-Z0-9]*[0-9])[a-zA-Z0-9]{7,}'
         email_pattern = r'^[^@]+@[^@]+\.[^@]+?(?=-)'
         franchise_id_pattern = r'(?:(?<=^)|(?<=-))[0-9]{3,6}'
         channel_id_pattern = r'(?<=-)\d+(?=-)'
         type_pattern = r'(?<=-)[a-z]+(?:-[a-z]+)*$'
+        delimiter_pattern = r'^([a-zA-Z0-0]+):'
         aggregate_patterns = defaultdict(list)
 
         for obj in tqdm(data):
@@ -216,6 +217,7 @@ class RmaApplication(object):
             if match:
                 type = match.group()
                 aggregate_patterns[type].append(obj)            
+            replaced = re.sub(delimiter_pattern, '$1', replaced)
             aggregate_patterns[replaced].append(obj)
 
         return dict(aggregate_patterns)
